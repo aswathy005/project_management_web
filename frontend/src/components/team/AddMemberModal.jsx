@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import Modal from '../common/Modal';
 import Button from '../common/Button';
 
@@ -6,11 +7,12 @@ export default function AddMemberModal({ isOpen, onClose, onSubmit, loading = fa
   const [form, setForm] = useState({
     name: '',
     email: '',
-    password: 'Password@123',
+    password: '',
     role: 'Team Member',
     jobTitle: '',
     department: 'Engineering',
   });
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -18,11 +20,12 @@ export default function AddMemberModal({ isOpen, onClose, onSubmit, loading = fa
       setForm({
         name: '',
         email: '',
-        password: 'Password@123',
+        password: '',
         role: 'Team Member',
         jobTitle: '',
         department: 'Engineering',
       });
+      setShowPassword(false);
     });
   };
 
@@ -54,7 +57,7 @@ export default function AddMemberModal({ isOpen, onClose, onSubmit, loading = fa
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="alex@protrack.io"
+              placeholder="alex@company.com"
               className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
             />
           </div>
@@ -75,14 +78,26 @@ export default function AddMemberModal({ isOpen, onClose, onSubmit, loading = fa
           </div>
           <div>
             <label className="mb-1.5 block text-sm font-medium text-slate-700">Initial Password</label>
-            <input
-              type="text"
-              required
-              minLength={6}
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="w-full rounded-xl border border-slate-200 px-3.5 py-2.5 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
-            />
+            <div className="relative">
+              <input
+                type={showPassword ? 'text' : 'password'}
+                required
+                minLength={6}
+                autoComplete="new-password"
+                placeholder="Min. 6 characters"
+                value={form.password}
+                onChange={(e) => setForm({ ...form, password: e.target.value })}
+                className="w-full rounded-xl border border-slate-200 py-2.5 pl-3.5 pr-10 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((prev) => !prev)}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 hover:text-slate-600"
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
           </div>
         </div>
 

@@ -109,6 +109,7 @@ Unlike static prototypes, every dashboard metric, chart dataset, project progres
    - `User` model pre-save hook hashes the password using `bcryptjs` (salt rounds: 10).
    - Server logs a `user_registered` activity, generates a signed JWT (`JWT_EXPIRES_IN=7d`), and returns `{ token, user }`.
 2. **Login (`POST /api/auth/login`)**:
+   - `LoginPage` initializes with empty email and password fields (no hardcoded or pre-filled credentials), includes a **Show/Hide Password** toggle, and validates email/password inputs before submission.
    - Server fetches user with `.select('+password')`, verifies `isActive`, and compares passwords using `user.comparePassword(password)`.
    - Returns `{ token, user }`.
    - Frontend `AuthContext` persists `protrack_token` and `protrack_user` to `localStorage` and navigates to `/dashboard`.
@@ -306,13 +307,15 @@ project_management/
 │       ├── middleware/     (authMiddleware, errorMiddleware, validateMiddleware)
 │       ├── models/         (User, Project, Task, Comment, Notification, Activity)
 │       ├── routes/         (8 REST route modules)
-│       ├── seed/           (seedData.js)
+│       ├── seed/           (seedData.js, seedUsersOnly.js, clearData.js)
 │       └── utils/          (ApiError, asyncHandler, tokenUtils, activityLogger, progressUtils)
 └── frontend/
     ├── index.html
     ├── package.json
     ├── tailwind.config.js
+    ├── vercel.json
     ├── vite.config.js
+    ├── public/             (protrack-logo.svg)
     └── src/
         ├── App.jsx
         ├── main.jsx
@@ -390,12 +393,12 @@ Application runs on `http://localhost:5173`.
 ## 20. Testing Instructions
 
 1. **Authentication & Session Persistence**:
-   - Open `http://localhost:5173/login`, use the **Quick Demo Login** buttons or register a new user at `/register`.
+   - Open `/login`, enter valid credentials (or register a new user at `/register`), and toggle Show/Hide Password to verify masked/visible input.
    - Refresh the browser to verify JWT persistence via `/api/auth/me`.
 2. **Role-Based Access Control (RBAC)**:
-   - Sign in as **Admin** (`admin@protrack.io`): verify access to **Create Project**, project edit/delete, **Add Member**, and role dropdowns on `/team`.
-   - Sign in as **Project Manager** (`manager@protrack.io`): verify project creation/editing works, while Admin-only member creation/role editing controls are hidden and rejected (`403`) on the API.
-   - Sign in as **Team Member** (`member@protrack.io`): verify `/projects/new` redirects to `/dashboard`, project edit/delete actions are restricted, and task status updates + comments work seamlessly.
+   - Sign in as **Admin** (`admin@gmail.com`): verify access to **Create Project**, project edit/delete, **Add Member**, and role dropdowns on `/team`.
+   - Sign in as **Project Manager** (`ProjectManager@gmail.com`): verify project creation/editing works, while Admin-only member creation/role editing controls are hidden and rejected (`403`) on the API.
+   - Sign in as **Team Member** (`TeamMember@gmail.com`): verify `/projects/new` redirects to `/dashboard`, project edit/delete actions are restricted, and task status updates + comments work seamlessly.
 3. **Project & Task CRUD**:
    - Create a project on `/projects/new`, inspect `/projects/:id`, add a task, edit it, and confirm the project's progress percentage recalculates automatically.
    - Test confirmation dialogs before deleting a task or project.

@@ -1,17 +1,20 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Mail, Lock, ArrowRight, ShieldCheck, CheckCircle2, Sparkles } from 'lucide-react';
+import {
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  ArrowRight,
+  ShieldCheck,
+  CheckCircle2,
+  Sparkles,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useAuth } from '../context/AuthContext';
 import { getErrorMessage } from '../services/api';
 import Button from '../components/common/Button';
 import BrandLogo from '../components/common/BrandLogo';
-
-const DEMO_ACCOUNTS = [
-  { label: 'Admin', role: 'Full Access', email: 'admin@gmail.com', password: 'admin@123' },
-  { label: 'Manager', role: 'Projects & Tasks', email: 'ProjectManager@gmail.com', password: 'ProjectManager@123' },
-  { label: 'Member', role: 'Execution', email: 'TeamMember@gmail.com', password: 'TeamMember@123' },
-];
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -19,25 +22,41 @@ export default function LoginPage() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [formError, setFormError] = useState('');
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError('');
+
+    const trimmedEmail = email.trim();
+    if (!trimmedEmail || !/^\S+@\S+\.\S+$/.test(trimmedEmail)) {
+      const msg = 'Please enter a valid email address.';
+      setFormError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (!password) {
+      const msg = 'Password is required.';
+      setFormError(msg);
+      toast.error(msg);
+      return;
+    }
+
     setLoading(true);
     try {
-      await login({ email, password });
+      await login({ email: trimmedEmail, password });
       toast.success('Welcome back to ProTrack!');
       navigate('/dashboard');
     } catch (error) {
-      toast.error(getErrorMessage(error, 'Invalid credentials'));
+      const msg = getErrorMessage(error, 'Invalid email or password.');
+      setFormError(msg);
+      toast.error(msg);
     } finally {
       setLoading(false);
     }
-  };
-
-  const fillDemo = (account) => {
-    setEmail(account.email);
-    setPassword(account.password);
   };
 
   return (
@@ -121,6 +140,15 @@ export default function LoginPage() {
               Enter your workspace credentials to continue.
             </p>
 
+            {formError && (
+              <div
+                role="alert"
+                className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3.5 py-2.5 text-sm text-rose-700"
+              >
+                {formError}
+              </div>
+            )}
+
             <form onSubmit={handleSubmit} className="mt-6 space-y-4">
               <div>
                 <label className="mb-1.5 block text-sm font-medium text-slate-700">
@@ -131,8 +159,12 @@ export default function LoginPage() {
                   <input
                     type="email"
                     required
+                    autoComplete="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (formError) setFormError('');
+                    }}
                     placeholder="name@company.com"
                     className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                   />
@@ -146,13 +178,29 @@ export default function LoginPage() {
                 <div className="relative">
                   <Lock className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
                   <input
-                    type="password"
+                    type={showPassword ? 'text' : 'password'}
                     required
+                    autoComplete="current-password"
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-4 text-sm transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      if (formError) setFormError('');
+                    }}
+                    placeholder="Enter your password"
+                    className="w-full rounded-xl border border-slate-200 py-2.5 pl-10 pr-10 text-sm transition-all focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-400 transition-colors hover:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-4 w-4" />
+                    ) : (
+                      <Eye className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -161,26 +209,6 @@ export default function LoginPage() {
                 <ArrowRight className="h-4 w-4" />
               </Button>
             </form>
-
-            {/* Quick Demo Credentials */}
-            <div className="mt-6 border-t border-slate-100 pt-5">
-              <p className="mb-2.5 text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                One-Click Quick Login
-              </p>
-              <div className="grid grid-cols-3 gap-2">
-                {DEMO_ACCOUNTS.map((acc) => (
-                  <button
-                    key={acc.email}
-                    type="button"
-                    onClick={() => fillDemo(acc)}
-                    className="rounded-xl border border-slate-200 bg-slate-50/70 px-2.5 py-2 text-left transition-all hover:border-indigo-300 hover:bg-indigo-50/80"
-                  >
-                    <p className="text-xs font-semibold text-slate-800">{acc.label}</p>
-                    <p className="text-[10px] text-slate-500 truncate">{acc.role}</p>
-                  </button>
-                ))}
-              </div>
-            </div>
 
             <p className="mt-6 text-center text-sm text-slate-500">
               Don&apos;t have an account?{' '}
